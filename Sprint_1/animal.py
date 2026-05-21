@@ -26,8 +26,8 @@ class Echidna:
         self.update_state(temp)
         self.after_sprint = False
         self.metabolism_ratio = 1
-        self.bmr = self.BMR()
         self.season = season
+        self.bmr = self.BMR()
         pass
 
 

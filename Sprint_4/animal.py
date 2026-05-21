@@ -92,6 +92,12 @@ class Echidna:
         self.days_since_last_feed = 0
         self.independent_age_days = 0
         self.baby_weight = 0.0
+        self.PREGNANCY = random.randint(21, 28)
+        self.DAYS_IN_POUCH = random.randint(50, 55)
+
+         # Атрибуты спринта 4
+        self.electroreceptor_count = 2000
+        self.field_strength_mVcm = 1.8
 
         self.update_state(temp)
         self.bmr = self.BMR()
@@ -269,6 +275,7 @@ class Echidna:
     def start_pregnancy(self):
         """Инициирует беременность (только для самок)."""
         if not self.alive:
+            self.is_pregnant = False
             raise ValueError(f"{self.name} мертва и не может забеременеть")
         if self.gender == 'male':
             raise ValueError(f"Самец {self.name} не может забеременеть")
@@ -299,7 +306,7 @@ class Echidna:
         # 1. Беременность -> откладывание яйца
         if self.is_pregnant:
             self.pregnancy_days += 1
-            pregnancy_duration = random.randint(21, 28)
+            pregnancy_duration = self.PREGNANCY
             if self.pregnancy_days >= pregnancy_duration:
                 self.is_pregnant = False
                 self.has_egg = True
@@ -319,7 +326,7 @@ class Echidna:
         if self.baby_in_pouch:
             self.pouch_days += 1
             self._update_pouch_baby_growth()
-            pouch_stay = random.randint(50, 55)
+            pouch_stay = self.DAYS_IN_POUCH
             if self.pouch_days >= pouch_stay:
                 self.baby_in_pouch = False
                 self.baby_in_hiding = True
@@ -372,3 +379,22 @@ class Echidna:
             "baby_weight_kg": self.baby_weight,
             "baby_weight_g": self.baby_weight * 1000,
         }
+    
+    def detect_prey_by_electric_field(self, depth_cm: float):
+        if not self.alive:
+            raise ValueError("Ехидна мертва")
+        if self.burrowing or self.state in ['torpor', 'hibernation']:
+            return {"detected": False, "prey_type": None, "distance_mm": None}
+        if depth_cm < 0:
+            raise ValueError("Глубина не может быть отрицательной")
+        if depth_cm > 15 or self.field_strength_mVcm < 1.8:
+            return {"detected": False, "prey_type": None, "distance_mm": None}
+        probability = min(1.0, self.electroreceptor_count / 2000)
+        if random.random() < probability:
+            return {
+            "detected": True,
+            "prey_type": random.choice(["ants", "termites", "worms"]),
+            "distance_mm": depth_cm * 10
+            }
+        else:
+            return {"detected": False, "prey_type": None, "distance_mm": None}
